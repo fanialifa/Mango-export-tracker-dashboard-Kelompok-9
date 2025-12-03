@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥭 Mango Export Tracker Indonesia</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+
+        .navbar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .navbar h1 span {
+            color: #ed8936;
+        }
+
+        .navbar nav a {
+            color: #4a5568;
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .navbar nav a:hover {
+            color: #ed8936;
+        }
+
+        .hero {
+            background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.85)),
+                        url('https://images.unsplash.com/photo-1591206369811-4eeb2f18ecf8?w=1920&h=800&fit=crop');
+            background-size: cover;
+            background-position: center;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 900px;
+            padding: 3rem 2rem;
+        }
+
+        .hero-content h2 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .hero-content h2 .highlight {
+            color: #ed8936;
+        }
+
+        .hero-content p {
+            font-size: 1.25rem;
+            color: #4a5568;
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 2rem;
+            max-width: 900px;
+        }
+
+        .hero-stat {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .hero-stat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(237, 137, 54, 0.15);
+        }
+
+        .hero-stat h3 {
+            font-size: 2.5rem;
+            color: #ed8936;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .hero-stat p {
+            color: #718096;
+            font-size: 0.9rem;
+            margin: 0;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            color: #718096;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab.active {
+            color: #ed8936;
+            border-bottom-color: #ed8936;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #ed8936;
+            box-shadow: 0 0 0 3px rgba(237, 137, 54, 0.1);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(237, 137, 54, 0.3);
+        }
+
+        .suggestions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .suggestion-chip {
+            padding: 0.6rem 1.2rem;
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .suggestion-chip:hover {
+            background: #ed8936;
+            color: white;
+            border-color: #ed8936;
+        }
+
+        #qr-reader {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .result-card.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-item {
+            background: rgba(255,255,255,0.15);
+            padding: 1rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .result-item h4 {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .result-item p {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        #map {
+            height: 450px;
+            border-radius: 16px;
+            margin: 2rem 0;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 3rem;
+            margin: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #ed8936, #dd6b20);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-left: 1.5rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.5rem;
+            top: 5px;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #cbd5e0;
+        }
+
+        .timeline-item.active::before {
+            background: #48bb78;
+            box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.2);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.error {
+            background: #fed7d7;
+            color: #c53030;
+            border-left: 4px solid #c53030;
+        }
+
+        .alert.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chart-card {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .chart-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+        .chart-card h4 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .chart-card canvas {
+            max-height: 250px;
+        }
+
+        .funfacts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .funfact-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            border-left: 4px solid #ed8936;
+            transition: all 0.3s;
+        }
+
+        .funfact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .funfact-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .funfact-card h4 {
+            color: #2d3748;
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .funfact-card p {
+            color: #4a5568;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        .team-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .team-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .team-photo {
+            width: 100%;
+            height: 280px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-info {
+            padding: 2rem;
+        }
+
+        .team-info h4 {
+            color: #1a202c;
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .team-info .nim {
+            color: #718096;
+            font-size: 0.95rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .team-info .role {
+            display: inline-block;
+            background: #fed7d7;
+            color: #c53030;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .team-info p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #ed8936;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
+            color: #dd6b20;
+            transform: translateX(5px);
+        }
+
+        .social-link i {
+            font-size: 1.2rem;
+        }
+
+        footer {
+            background: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            color: #718096;
+            margin-top: 3rem;
+            box-shadow: 0 -2px 20px rgba(0,0,0,0.05);
+        }
+
+        footer p {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h2 {
+                font-size: 2.5rem;
+            }
+
+            .navbar nav a {
+                margin-left: 1rem;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<style>
+        /* HIASAN 1: Floating Mango Icons */
+        .floating-mango {
+            position: fixed;
+            font-size: 3rem;
+            animation: float 4s ease-in-out infinite;
+            z-index: 1;
+            opacity: 0.3;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        /* HIASAN 2: Glow Effect di Judul */
+        h1 {
+            text-shadow: 
+                0 0 10px rgba(255, 154, 86, 0.8),
+                0 0 20px rgba(255, 154, 86, 0.6),
+                0 0 30px rgba(255, 154, 86, 0.4);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 10px rgba(255, 154, 86, 0.8); }
+            50% { text-shadow: 0 0 20px rgba(255, 154, 86, 1); }
+        }
+        
+        /* HIASAN 3: Card Shadow Hover */
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 154, 86, 0.3);
+        }
+    </style>
+</head>
+
+    
+<body>
+    
+    
+    <nav class="navbar">
+        <h1>🥭 Mango <span>Export Tracker</span></h1>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#tracking">Tracking</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="#team">Team</a>
+        </nav>
+    </nav>
+
+    <div class="hero" id="home">
+        <div class="hero-content">
+            <h2>Follow The Journey <span class="highlight">of Every Mangoes</span></h2>
+            <p>Dari kebun lokal hingga pasar global, terpantau secara real-time!</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <h3 id="heroTotal">-</h3>
+                    <p>Total Batches</p>
+                </div>
+                <div class="hero-stat">
+                    <h3 id="heroProvinces">-</h3>
+                    <p>Provinces</p>
+                </div>
+                <div class="hero-stat">
+                    <h3 id="heroDestinations">-</h3>
+                    <p>Countries</p>
+                </div>
+                <div class="hero-stat">
+                    <h3 id="heroWeight">-</h3>
+                    <p>Tons Exported</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section" id="tracking">
+            <h2 class="section-title">🗺️ Live Tracking System</h2>
+            <p class="section-subtitle">Scan QR Code atau masukkan Batch Code untuk tracking real-time</p>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('manual')">📝 Manual Input</button>
+                <button class="tab" onclick="switchTab('qr')">📷 Scan QR Code</button>
+            </div>
+
+            <div id="manual-tab" class="tab-content active">
+                <p style="color: #718096; margin-bottom: 1rem;">Masukkan Batch Code (contoh: MG20240001)</p>
+
+                <div class="suggestions">
+                    <span class="suggestion-chip" onclick="fillBatchCode('MG20240001')">MG20240001</span>
+                    <span class="suggestion-chip" onclick="fillBatchCode('MG20240003')">MG20240003</span>
+                    <span class="suggestion-chip" onclick="fillBatchCode('MG20240005')">MG20240005</span>
+                    <span class="suggestion-chip" onclick="fillBatchCode('MG20240010')">MG20240010</span>
+                    <span class="suggestion-chip" onclick="fillBatchCode('MG20240018')">MG20240018</span>
+                    <span class="suggestion-chip" onclick="fillBatchCode('MG20240100')">MG20240100</span>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="batchInput" placeholder="Coba: MG20240001" 
+                           onkeypress="if(event.key==='Enter') trackBatch()">
+                    <button class="btn" onclick="trackBatch()">🔍 Track</button>
+                </div>
+            </div>
+
+            <div id="qr-tab" class="tab-content">
+                <p style="color: #718096; margin-bottom: 1rem;">Arahkan kamera ke QR Code!</p>
+                <div id="qr-reader"></div>
+                <p id="qr-result" style="margin-top: 1rem; color: #ed8936; font-weight: bold;"></p>
+            </div>
+
+            <div id="errorAlert" class="alert error"></div>
+
+            <div id="resultCard" class="result-card">
+                <h3 style="margin-bottom: 1rem;">📦 Batch Details</h3>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <h4>Variety</h4>
+                        <p id="variety">-</p>
+                    </div>
+                    <div class="result-item">
+                        <h4>Province</h4>
+                        <p id="province">-</p>
+                    </div>
+                    <div class="result-item">
+                        <h4>Farm</h4>
+                        <p id="farm">-</p>
+                    </div>
+                    <div class="result-item">
+                        <h4>Harvest Date</h4>
+                        <p id="harvest">-</p>
+                    </div>
+                    <div class="result-item">
+                        <h4>Weight (kg)</h4>
+                        <p id="weight">-</p>
+                    </div>
+                    <div class="result-item">
+                        <h4>Grade</h4>
+                        <p id="grade">-</p>
+                    </div>
+                    <div class="result-item">
+                        <h4>Destination</h4>
+                        <p id="destination">-</p>
+                    </div>
+                    <div class="result-item">
+                        <h4>Status</h4>
+                        <p id="status">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="map"></div>
+
+            <div id="timelineSection" style="display: none;">
+                <h3 style="color: #2d3748; margin: 2rem 0 1rem; font-size: 1.5rem; font-weight: 600;">📍 Shipment Timeline</h3>
+                <div class="timeline" id="timeline"></div>
+            </div>
+        </div>
+
+       
+        <div class="section" id="funfacts">
+            <h2 class="section-title">🥭 Tahukah Kamu Tentang Mangga??</h2>
+            <p class="section-subtitle">Yuk,cari tau mengenai fakta uniknya!</p>
+            <div class="funfacts-grid">
+                <div class="funfact-card">
+                    <div class="icon">🌍</div>
+                    <h4>Raja Buah Tropis</h4>
+                    <p>Mangga dijuluki "King of Tropical Fruits" dan merupakan buah nasional India, Pakistan, dan Filipina.</p>
+                </div>
+                <div class="funfact-card">
+                    <div class="icon">🔢</div>
+                    <h4>1000+ Varietas</h4>
+                    <p>Ada lebih dari 1000 varietas mangga di seluruh dunia, dengan Indonesia memiliki Arumanis, Gedong Gincu, dan Harum Manis sebagai primadona ekspor.</p>
+                </div>
+                <div class="funfact-card">
+                    <div class="icon">💪</div>
+                    <h4>Super Menyehatkan</h4>
+                    <p>Satu buah mangga mengandung 100% kebutuhan Vitamin C harian dan 35% kebutuhan Vitamin A.</p>
+                </div>
+                <div class="funfact-card">
+                    <div class="icon">🌳</div>
+                    <h4>Pohon Berusia Panjang</h4>
+                    <p>Pohon mangga bisa hidup hingga 300 tahun dan tetap produktif menghasilkan buah berkualitas tinggi.</p>
+                </div>
+                <div class="funfact-card">
+                    <div class="icon">📦</div>
+                    <h4>Ekspor Indonesia</h4>
+                    <p>Indonesia mengekspor mangga ke 10+ negara termasuk Singapura, Malaysia, Hong Kong, dan Timur Tengah dengan nilai ekspor mencapai jutaan dollar per tahun.</p>
+                </div>
+                <div class="funfact-card">
+                    <div class="icon">🎨</div>
+                    <h4>Jangan lihat warnanya!</h4>
+                    <p>Warna mangga tidak selalu menunjukkan kematangannya. Beberapa varietas tetap hijau meski sudah matang sempurna!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="team">
+            <h2 class="section-title">👥 Meet Our Team!</h2>
+            <p class="section-subtitle">The people behind this project</p>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="fani.jpg" alt="Alifa Fania Farghana">
+                    </div>
+                    <div class="team-info">
+                        <h4>Alifa Fania Farghana</h4>
+                        <p class="nim">NIM: F3401241050</p>
+                        <a href="https://instagram.com/fnia.fan" target="_blank" class="social-link">
+                            <i class="fab fa-instagram"></i>
+                            @fnia.fan
+                        </a>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="ajni.jpg" alt="Keysha Ajni Salsabila">
+                    </div>
+                    <div class="team-info">
+                        <h4>Keysha Ajni Salsabila</h4>
+                        <p class="nim">NIM: F3401241048</p>
+                        <a href="https://instagram.com/keyshaajni" target="_blank" class="social-link">
+                            <i class="fab fa-instagram"></i>
+                            @keyshaajni
+                        </a>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-photo">
+                        <img src="damai.jpg" alt="Azhar Damai Nugraha">
+                    </div>
+                    <div class="team-info">
+                        <h4>Azhar Damai Nugraha</h4>
+                        <p class="nim">NIM: F3401241017</p>
+                        <a href="https://instagram.com/azhrngrhaaa_" target="_blank" class="social-link">
+                            <i class="fab fa-instagram"></i>
+                            @azhrngrhaaa_
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p style="font-size: 1.1rem; color: #2d3748; font-weight: 600;">🥭 Mango Export Tracker Indonesia</p>
+        <p style="margin-top: 0.75rem;">Supporting Indonesian Farmers | Quality Export | Built with ❤️ by Kelompok 9 TIK</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">&copy; 2025 All Rights Reserved</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="batches_data.js"></script>
+    <script src="batches_array.js"></script>
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([-2.5, 118], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let currentMarker = null;
+        let html5QrCode = null;
+
+        // Professional color palette
+        const colorPalette = [
+            '#667eea', '#764ba2', '#f093fb', '#4facfe',
+            '#43e97b', '#fa709a', '#fee140', '#30cfd0',
+            '#a8edea', '#fed6e3'
+        ];
+
+        // Province coordinates
+        const provinceCoords = {
+            'Sumatra Utara': [2.1154, 99.5451],
+            'Jawa Barat': [-6.9175, 107.6191],
+            'Jawa Timur': [-7.5361, 112.2384],
+            'Jawa Tengah': [-7.1510, 110.1403],
+            'Lampung': [-4.5586, 105.4068],
+            'Bali': [-8.3405, 115.0920],
+            'NTB': [-8.6529, 117.3616]
+        };
+
+        const destCoords = {
+            'Singapore': [1.3521, 103.8198],
+            'Malaysia': [4.2105, 101.9758],
+            'Thailand': [15.8700, 100.9925],
+            'China': [35.8617, 104.1954],
+            'Japan': [36.2048, 138.2529],
+            'South Korea': [35.9078, 127.7669],
+            'Hong Kong': [22.3193, 114.1694],
+            'UAE': [23.4241, 53.8478],
+            'Saudi Arabia': [23.8859, 45.0792]
+        };
+
+        // Initialize QR Scanner
+        function initQRScanner() {
+            html5QrCode = new Html5Qrcode("qr-reader");
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    document.getElementById('qr-result').textContent = "Scanned: " + decodedText;
+                    document.getElementById('batchInput').value = decodedText;
+                    trackBatch();
+                    html5QrCode.stop();
+                },
+                () => {}
+            ).catch((err) => {
+                document.getElementById('qr-result').textContent = "Camera access denied or not available";
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tab === 'manual') {
+                document.querySelector('.tab:first-child').classList.add('active');
+                document.getElementById('manual-tab').classList.add('active');
+                if (html5QrCode) html5QrCode.stop();
+            } else {
+                document.querySelector('.tab:last-child').classList.add('active');
+                document.getElementById('qr-tab').classList.add('active');
+                initQRScanner();
+            }
+        }
+
+        function fillBatchCode(code) {
+            document.getElementById('batchInput').value = code;
+            trackBatch();
+        }
+
+        function trackBatch() {
+            const code = document.getElementById('batchInput').value.trim().toUpperCase();
+
+            if (!code) {
+                showError('Masukkan batch code terlebih dahulu');
+                return;
+            }
+
+            const batch = getBatch(code);
+
+            if (!batch) {
+                showError('Batch tidak ditemukan: ' + code);
+                hideResult();
+                return;
+            }
+
+            hideError();
+            displayResult(batch, code);
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('errorAlert');
+            alert.textContent = message;
+            alert.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorAlert').classList.remove('show');
+        }
+
+        function displayResult(batch, code) {
+            document.getElementById('resultCard').classList.add('show');
+
+            document.getElementById('variety').textContent = batch.variety || '-';
+            document.getElementById('province').textContent = batch.province || '-';
+            document.getElementById('farm').textContent = batch.farm || '-';
+            document.getElementById('harvest').textContent = batch.harvest || '-';
+            document.getElementById('weight').textContent = batch.weight || '-';
+            document.getElementById('grade').textContent = batch.grade || '-';
+            document.getElementById('destination').textContent = batch.dest || '-';
+            document.getElementById('status').textContent = batch.status || '-';
+
+            updateMap(batch);
+            showTimeline(batch);
+        }
+
+        function hideResult() {
+            document.getElementById('resultCard').classList.remove('show');
+            document.getElementById('timelineSection').style.display = 'none';
+        }
+
+        function updateMap(batch) {
+            if (currentMarker) map.removeLayer(currentMarker);
+
+            const province = batch.province;
+            const dest = batch.dest;
+
+            if (provinceCoords[province]) {
+                const coord = provinceCoords[province];
+                currentMarker = L.marker(coord).addTo(map)
+                    .bindPopup(`<b>${province}</b><br>${batch.farm}`)
+                    .openPopup();
+
+                if (destCoords[dest]) {
+                    L.polyline([coord, destCoords[dest]], {
+                        color: '#667eea',
+                        weight: 3,
+                        dashArray: '10, 10'
+                    }).addTo(map);
+
+                    L.marker(destCoords[dest]).addTo(map)
+                        .bindPopup(`<b>Destination</b><br>${dest}`);
+                }
+
+                map.setView(coord, 6);
+            }
+        }
+
+        function showTimeline(batch) {
+            const section = document.getElementById('timelineSection');
+            const timeline = document.getElementById('timeline');
+
+            section.style.display = 'block';
+
+            const stages = [
+                { name: 'Harvested', date: batch.harvest, active: true },
+                { name: 'Quality Check', date: batch.harvest, active: batch.status !== 'Harvested' },
+                { name: 'At Port', date: '-', active: ['At Port', 'In Transit', 'Exported', 'Delivered'].includes(batch.status) },
+                { name: 'In Transit', date: '-', active: ['In Transit', 'Exported', 'Delivered'].includes(batch.status) },
+                { name: 'Delivered', date: '-', active: batch.status === 'Delivered' }
+            ];
+
+            timeline.innerHTML = stages.map(stage => `
+                <div class="timeline-item ${stage.active ? 'active' : ''}">
+                    <h4>${stage.name}</h4>
+                    <p>${stage.date}</p>
+                </div>
+            `).join('');
+        }
+
+        function countByField(field) {
+            const counts = {};
+            batchesArray.forEach(b => {
+                const val = b[field];
+                counts[val] = (counts[val] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function createHomeCharts() {
+            createHomeProvinceChart();
+            createHomeStatusChart();
+            createHomeDestChart();
+            createHomeGradeChart();
+            createHomeVarietyChart();
+            createHomeFarmChart();
+        }
+
+        function createHomeProvinceChart() {
+            const ctx = document.getElementById('homeProvinceChart');
+            const data = countByField('province');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Batches',
+                        data: Object.values(data),
+                        backgroundColor: '#667eea',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function createHomeStatusChart() {
+            const ctx = document.getElementById('homeStatusChart');
+            const data = countByField('status');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: colorPalette
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        function createHomeDestChart() {
+            const ctx = document.getElementById('homeDestChart');
+            const data = countByField('dest');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Batches',
+                        data: Object.values(data),
+                        backgroundColor: '#764ba2',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function createHomeGradeChart() {
+            const ctx = document.getElementById('homeGradeChart');
+            const data = countByField('grade');
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: ['#48bb78', '#f6ad55', '#fc8181']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        function createHomeVarietyChart() {
+            const ctx = document.getElementById('homeVarietyChart');
+            const data = countByField('variety');
+            const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(s => s[0]),
+                    datasets: [{
+                        label: 'Batches',
+                        data: sorted.map(s => s[1]),
+                        backgroundColor: colorPalette,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function createHomeFarmChart() {
+            const ctx = document.getElementById('homeFarmChart');
+            const data = countByField('farm');
+            const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sorted.map(s => s[0]),
+                    datasets: [{
+                        data: sorted.map(s => s[1]),
+                        backgroundColor: colorPalette
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        window.addEventListener('load', () => {
+            const total = getTotalBatches();
+            document.getElementById('heroTotal').textContent = total.toLocaleString();
+
+            const batches = Object.values(batchDatabase);
+            const provinces = new Set(batches.map(b => b.province));
+            const destinations = new Set(batches.map(b => b.dest));
+            const totalWeight = batches.reduce((sum, b) => sum + (parseFloat(b.weight) || 0), 0);
+
+            document.getElementById('heroProvinces').textContent = provinces.size;
+            document.getElementById('heroDestinations').textContent = destinations.size;
+            document.getElementById('heroWeight').textContent = (totalWeight / 1000).toFixed(1);
+
+            createHomeCharts();
+        });
+    </script>
+
+    <!-- Firebase Configuration -->
+    <script type="module">
+        import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+
+        // TODO: Ganti dengan config dari Firebase Console (Project Settings > General > Your apps)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIDp4zTKgWTmSP7OJAwtvZsBXGLMnkVSs",
+            authDomain: "tik-kelompok-9.firebaseapp.com",
+            projectId: "tik-kelompok-9",
+            storageBucket: "tik-kelompok-9.firebasestorage.app",
+            messagingSenderId: "71767393370",
+            appId: "1:71767393370:web:7b52a2f558365180e90463"
+        };
+
+        // Initialize Firebase
+        const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+        window.firebaseApp = app;
+
+        console.log("✅ Firebase initialized successfully!");
+    </script>
+
+</body>
+</html>
